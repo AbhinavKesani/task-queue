@@ -15,7 +15,14 @@ const app = express();
 const server = http.createServer(app);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://task-queue-8okt.vercel.app'
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -34,13 +41,19 @@ app.get('/api/health', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
+  });
 });
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
@@ -51,8 +64,7 @@ const start = async () => {
   await connectRabbitMQ();
 
   server.listen(PORT, () => {
-    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📋 API Docs: http://localhost:${PORT}/api/health\n`);
+    console.log(`🚀 Server running on port ${PORT}`);
   });
 };
 
