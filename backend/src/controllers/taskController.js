@@ -19,10 +19,16 @@ const createTask = async (req, res) => {
       status: 'PENDING',
     });
 
-    // Publish to RabbitMQ
-    await publishTask(task, task.priority);
-    task.status = 'QUEUED';
-    await task.save();
+// Publish to RabbitMQ (if available)
+try {
+  await publishTask(task, task.priority);
+  task.status = 'QUEUED';
+} catch (err) {
+  console.log('RabbitMQ unavailable, storing task in MongoDB only');
+  task.status = 'QUEUED';
+}
+
+await task.save();
 
     res.status(201).json({ success: true, data: task });
   } catch (error) {
